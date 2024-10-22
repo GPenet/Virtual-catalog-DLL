@@ -7,16 +7,22 @@ NED= 5472730538 possible min lexical solution grids of a sudoku.
 the three main services are 
 
 give the rank 1-NED get the solution grid
+
 Give a solution grid, get the rank 1-NED
+
 Get a virtual file for a sequential process on part of the catalog.
 
 The virtual file is always a sequence of the 652408 valid fills for the first four rows of a solution grid;
 In the frist delivery, the sequence fits with a given chunks of the first band
 
 The repository contains 
+
 all DLL and .LIB files used here
+
 The sources of the DLL
+
 User files for all the DLL 
+
 and a sample file used to test the DLL
 
 The sources for the DLLs called by the virtual catalog can be seen in another repository
