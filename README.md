@@ -31,10 +31,15 @@ https://github.com/GPenet/Virtual-calatog
 4 more  DLL are needed
 
 skbminlex    giving Id and mapping for a band
+
 skbvcminlex  same, but a special variant with a quicker respond in the virtual catalog context
+
 skgminlex    giving the gangster Id and the fills avalble for the band
+
 skbgridmin  giving the min lexical morph of a given grid (with auto morphs in option)
+
             a special entry for the virtual catalog gives a quicker response if the entry is not minimal
+            
 
 Note : One reason to include here all user files and .lib files of called DLLs 
 is that the user can call any of the entries of these DLLs, 
