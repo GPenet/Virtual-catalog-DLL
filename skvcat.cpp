@@ -1,6 +1,6 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
-#define SK0FDEBUGGINGBAND
+//#define SK0FDEBUGGINGBAND
 //#define SK0FDEBUGGING_EXT
 
 
@@ -13,29 +13,6 @@
 #include "maingp_user.h"
 #include "skvcats.h"
 #include "skb_permband_cpp.h"
-
-/* DLL entries extern "C" __declspec(dllimport)
- void SkbGetBandChar(int bandid, char* bchar27);
- void SkbGetMappingChar(   const char * a, BANDPERM *  b);
- void SkbGetMappingInt(   int* a, BANDPERM * b);
-
-// ======= getting auto morphs
-int GcatGetBandIndex(int* b0, int band1_index);
-// Get mapping pointer
-BANDPERM* GcatGetMappingPointer();
-
-// ============= gangster
-int SkgGetGang(int* g27);
-int SkgGetFills(int igang, const char*** tfill);
-int SkgBuildMorphedTableSortedOver(int ib1);
-int* Skg_GetMorphedOrdered(int i, int* bandid);
-//   minlex 
-struct TPGC { char t[648][19]; int nt, bs_id[6], nv, nh;}*p_tpgc;
-void SkbsGetMin(int* g81s, int* g81min);
-void SkbsGetMinChar(char* g81sc, int* g81min);
-TPGC * SkbsSetModeWithAutos();
-
-*/
 
 
 
@@ -63,60 +40,6 @@ void VcatFillRowStart(VCDESC* z) {
 	z->i660k2 = b1r4[ib]; z->ir2 = 0;
 }
 
-/*
-	BANDPERM perm_ret;
-	SkbGetMappingInt(s_grid0, &perm_ret);
-	if ((s_band = perm_ret.i416) < 0) return -1;
-	s_minir4 = GetMinir4id9992(s_band, &s_grid0[27]);
-	if (s_minir4 < 0)return -1;
-	BuildVr4();
-	s_r4_index = GetRow4tIndex(s_vr4);
-	if (s_r4_index < 0)return -1;
-	uint32_t istartr4, iendr4;
-	GetR4PointersFrom_minir4(s_minir4, s_rank_r4, istartr4, iendr4);
-	uint64_t rk = s_rank_r4;
-	for (uint32_t i = istartr4; i < iendr4; i++) {
-		rk += tr4nsol[i];
-		if (tr4u[i] == s_r4_index) {
-			s_rank = 0;// it is a searched rank
-			s_r4start = rk - tr4nsol[i];
-			return 0;
-		}
-	}
-	return -1;
-
-void VCAT::GoSolForRank() {
-	cout << s_rank << " status GoSolForRank band " << s_band
-	<< " ir4=" << s_r4_index << " rk=" << s_r4start  << endl;
-	vcat.InitBand1(s_band);
-	//p_cpt2g[5] = s_r4start;
-	InitRow4FromI10375(tr4u[s_r4_index]);
-	for (int i = 0; i < 36; i++) cout << grid0[i] + 1;
-	cout << endl;
-	op.searchrank = 0;
-	GoRow5();
-}
-	s_minir4 = GetMinir4id9992(s_band, s_rank);
-	if (s_minir4 < 0) return -1;
-	uint32_t istartr4, iendr4;
-	GetR4PointersFrom_minir4(s_minir4, s_rank_r4, istartr4, iendr4);
-	uint64_t rk = s_rank_r4;
-	for (uint32_t i = istartr4; i < iendr4; i++) {
-		rk+= tr4nsol[i];
-		if (rk >= s_rank) {
-			s_r4_index = i;
-			s_r4start=rk- tr4nsol[i];
-			return 0;
-		}
-	}
-	return -1;
-		if(!genb12.FindSolForRank())	genb12.GoSolForRank();
-
-struct VCDESC {
-	uint64_t rank;
-	int i416, i9992, i660k1, ir1, i660k2, ir2;
-	struct G { int b1[27], r4[9], rx[45]; }g;
-	*/
 int  VcatFillRank(VCDESC* z) {
 	register uint64_t r = z->rank;
 	if (r > 5472730538) return -1;
@@ -390,7 +313,20 @@ void VCAT::GoNewBand2() {
 			}
 		}
 	}
-	 GoB2GangsterAnalysis(); 	
+	mode2below = 0;
+
+	if (outmode == 2) {// known sol look for rank
+		//for (int i = 0; i < 27; i++) cout<< grid0[27 + i] + 1;
+		//cout << " newband " << endl;
+		for (int i = 9; i < 27; i++) {
+			int ir = grid0[27 + i] - s_grid0[27 + i];
+			if (ir < 0) {	mode2below = 1; break;}
+			if(ir>0) {go_back = 2; return;	}// failed
+		}		
+	}
+	GoB2GangsterAnalysis(); 
+
+
 }
 
 void VCAT::GoB2GangsterAnalysis() {
@@ -431,73 +367,41 @@ void VCAT::GoB2GangsterAnalysis() {
 
 		//if (ir) continue;
 		if (SkbsGetMinIsNotMin(grid0)) continue;
+		if (mode2below) {	pcptx++; continue;}
 		Outcat();
 		if (go_back) return;
 	}
 
 }
 
-
-struct OPCOMMAND {// decoding command line option for this rpocess
-	// processing options 
-	int opcode;
-	int  bx3;// 
-	int out_entry; //output of the entry file for test DLL .bfx[2] & 2
-	// bfx[2] & 8 special use b2_is as limit b3
-	int b1;//band 1 in process 
-	int b2;//bands b2  forced
-	int ton;//test on and test level
-	int searchrank;
-	void SetUp(int opcod, int k = 0, int print = 1) {// init known or not
-		memset(this, 0, sizeof * this);
-		opcode = opcod;
-		bx3 = sgo.vx[11];
-		b1 = sgo.vx[0];
-		ton = sgo.vx[1];
-		if (sgo.bfx[2] & 2) out_entry = 1;
-		if (print) {
-			cout << "standard processing commands_______________" << endl;
-			cout << sgo.vx[0] << " b1  -v0- band 0_415" << endl;
-			if (out_entry)  cout << " file1 contains attached solution grids" << endl;
-			cout << "debugging commands___________________" << endl;
-			if (b2)		cout << b2 << " b2 -v5- filter band 2 index" << endl;
-			if (bx3 < 416)		cout << bx3 << " b3 index" << endl;
-
-			if (ton)cout << ton << "  test on  -v1- verbose mode " << endl;
-		}
-	}
-};
-extern  OPCOMMAND op;
-/*
-	cout << s_rank << " status GoSolForRank band " << s_band
-	<< " ir4=" << s_r4_index << " rk=" << s_r4start  << endl;
-	vcat.InitBand1(s_band);
-	//p_cpt2g[5] = s_r4start;
-	InitRow4FromI10375(tr4u[s_r4_index]);
-	for (int i = 0; i < 36; i++) cout << grid0[i] + 1;
-	cout << endl;
-	op.searchrank = 0;
-	GoRow5();		register uint64_t R = s_r4start +pcptx;
-		if (!op.searchrank) {
-			if (R < s_rank) return;
-			if (R > s_rank) { go_back = 1; return; }
-			memcpy(s_grid0, grid0, sizeof grid0);
-			for (int i = 0; i < 81; i++)cout << grid0[i] + 1;
-			cout << " sol for rank " << s_rank << endl;
-			go_back = 1; return;
-		}
-*/
 void VCAT::Outcat() {
 	if (outmode < 0) return; // undefined mode
-	if (outmode ==2)cout << "entry outcat go_back=" << go_back << endl;
 	if (go_back)return;
 	pcptx++;// row4 count of valid fills
 	//register uint64_t R = s_r4start + pcptx;//old
 	register uint64_t R = stc_rkr4_1 + pcptx;// current rank 1_..38
+	/*
+	if (outmode == 2) {
+		for (int i = 0; i < 27; i++) cout << grid0[54 + i] + 1;
+		cout << "entry outcat go_back=" << go_back
+			<< "pcptx " << pcptx << " r=" << R
+			<< endl;
+	}
+	*/
 
-	if (R < stc_k1) return;// out of the search
 
 	switch (outmode) {
+	case 2: {// search b3 ok with given
+		for (int i = 0; i < 27; i++) {
+			int ir = grid0[54 + i] - s_grid0[54 + i];
+			if (ir < 0) return;
+			if (ir > 0) { go_back = 2; return; }//failed
+		}
+		vcdesc_e.rank = R;
+		//cout << "seen ok" << endl;
+		go_back = 1;
+		return;
+	}// end case 2
 	case 1: {// search rank=stc_k1= stc_k2
 		if (R > s_rank) { go_back = 1; return; }// not expected
 		memcpy(s_grid0, grid0, sizeof grid0);
@@ -509,16 +413,13 @@ void VCAT::Outcat() {
 
 
 	case 0: {// store for sequential access
+		if (R < stc_k1) return;// out of the search
 		for (int i = 0; i < 27; i++)wtfillr4.b3[i] = grid0[54 + i] + '1';
 		tfillr4[stc_stn++] = wtfillr4;
 		if (R >= stc_k2) go_back = 1;
 		return;
 	}// end case 0
 
-	case 2: {// search b2 b3 ok with given
-		// we have it 
-		go_back = 1; return;
-	}// end case 2
 
 	}// end switch
 }
@@ -532,7 +433,7 @@ int VCAT::GetBandIndex() {
 	return -1;
 }
 
-
+//_____________________________  search rank => sol
 int VCAT::FindSolForRank(uint64_t rank) {
 	if (rank > 5472730538) return -1;
 	s_rank = rank;
@@ -542,8 +443,8 @@ int VCAT::FindSolForRank(uint64_t rank) {
 	uint32_t istartr4, iendr4;
 	GetR4PointersFrom_minir4(s_minir4, s_rank_r4, istartr4, iendr4);
 
-	cout << "s_rank_r4=" << s_rank_r4
-		<< " istartr4=" << istartr4 << " iendr 4="<< iendr4 << endl;
+	//cout << "s_rank_r4=" << s_rank_r4
+	//	<< " istartr4=" << istartr4 << " iendr 4="<< iendr4 << endl;
 
 
 	uint64_t rk = s_rank_r4;
@@ -559,27 +460,19 @@ int VCAT::FindSolForRank(uint64_t rank) {
 	return -1;
 };
 void VCAT::GoSolForRank() {
-	cout << s_rank << " status GoSolForRank band " << s_band		
-	<< " ir4=" << s_r4_index << " rk=" << s_r4start  << endl;
+	//cout << s_rank << " status GoSolForRank band " << s_band		
+	//<< " ir4=" << s_r4_index << " rk=" << s_r4start  << endl;
 	stc_rkr4_1 = s_r4start;
 	stc_k1 = s_rank;
 	vcat.InitBand1(s_band);
 	//p_cpt2g[5] = s_r4start;
 	InitRow4FromI10375(tr4u[s_r4_index]);
-	for (int i = 0; i < 36; i++) cout << grid0[i] + 1;
-	cout << endl;
+	//for (int i = 0; i < 36; i++) cout << grid0[i] + 1;
+	//cout << endl;
 	GoRow5();
+	
 }
-
-void VCAT::GoSolForSearchRank() {
-	cout << s_rank << " status GoSolForSearch Rank band " << s_band
-		<< " ir4=" << s_r4_index << " rk=" << s_r4start << endl;
-	//p_cpt2g[5] = s_r4start;
-	for (int i = 0; i < 36; i++) cout << grid0[i] + 1;
-	cout << endl;
-	op.searchrank = 1;
-	GoRow5();
-}
+//_____________________________ virtual file
 int VCAT::GetNext() {
 	//cout << " getnext ncur stn " << stc_ncur << " " << stc_stn << endl;
 	if (stc_ncur < stc_stn) {// take out of the table
@@ -600,7 +493,6 @@ int VCAT::GetNext() {
 	memcpy(vcdesc_e.g.rx, &tfillr4[stc_ncur++], 45);
 	return 0;
 }
-
 void VCAT::LoadR4() {// entry new r4
 	//cout << " entry load " << stc_4cur << " " << stc_4st <<" " << stc_4end << endl;
 	stc_kst += stc_stn;
@@ -646,28 +538,29 @@ void VCAT::LoadR4() {// entry new r4
 
 	stc_ncur = 0;
 }
-
 void VCAT::OpenBands(int ib1, int ib2) {
-	cout << "open entry" << endl;
+	//cout << "open entry" << endl;
 	stc_end= outmode=0;// open virtual file
 	if (ib1 < 0 || ib2>415 || ib1 > ib2) {
 		stc_end = 1; return;} // not correct close
-	cout << "open go " << ib1 << " " << ib2 << endl;
+	//cout << "open go " << ib1 << " " << ib2 << endl;
 	stc_kst = stc_rkr4_2 =b1startcat[ib1];
 	stc_kend = b1startcat[ib2 + 1];
-	cout << "open k= " << stc_kst << " " << stc_kend << endl;
+	//cout << "open k= " << stc_kst << " " << stc_kend << endl;
 
 	if(stc_kst== stc_kend){ stc_end = 1; return; }// empty
 	stc_bandid = ib1 - 1; //dummy for the first load
 	stc_band_endr4 = stc_4cur= stc_4st=b1r4[ib1];// dummy  forcing new band
 	stc_4end= b1r4[ib2 + 1];
-	cout << "open call load" << endl;
+	//cout << "open call load" << endl;
 	LoadR4();
 	//stc_ncur = -1; //dummy for first get next
 	// note never empty using  a valid R4
 }
+//________________________  searh sol => rank
 int VCAT::FindRankForSolMin() {
-	if (outmode < 0) return -1;// undefined process
+	//cout << " entry find rank" << endl;
+	if (outmode !=2) return -1;// not the right process
 	BANDPERM perm_ret;
 	SkbGetMappingInt(s_grid0, &perm_ret);
 	if ((s_band = perm_ret.i416) < 0) return -1;
@@ -676,7 +569,10 @@ int VCAT::FindRankForSolMin() {
 	BuildVr4();
 	s_r4_index = GetRow4tIndex(s_vr4);
 	if (s_r4_index < 0)return -1;
+	//cout << " builvr4 " << s_vr4<<endl
+	//	 << " minindex" <<row4t[s_r4_index]<< endl;
 	uint32_t istartr4, iendr4;
+	//cout << " get pointers" << endl;
 	GetR4PointersFrom_minir4(s_minir4, s_rank_r4, istartr4, iendr4);
 	uint64_t rk = s_rank_r4;
 	for (uint32_t i = istartr4; i < iendr4; i++) {
@@ -687,9 +583,39 @@ int VCAT::FindRankForSolMin() {
 			return 0;
 		}
 	}
+	//cout << " exit not ok" << endl;
 	return -1;
 }
+void VCAT::GoSolForSearchRank() {
+	//cout << s_rank << " status GoSolForSearch Rank band " << s_band
+	//	<< " ir4=" << s_r4_index << " rk=" << s_r4start << endl;
+	//p_cpt2g[5] = s_r4start;
+	vcat.InitBand1(s_band);
+	//p_cpt2g[5] = s_r4start;
+	InitRow4FromI10375(s_r4_index);
+//	for (int i = 0; i < 36; i++) cout << grid0[i] + 1;
+//	cout << " grid0" << endl;
+//	for (int i = 0; i < 81; i++) cout << s_grid0[i] + 1;
+//	cout<< " s_grid0" << endl;
+	stc_rkr4_1 = s_r4start;
+	GoRow5();
+}
 
+
+extern "C" __declspec(dllexport) int  SkvcatSetModeGetVCDESK(int mode, VCDESC** pe);
+extern "C" __declspec(dllexport) int  SkvcatSetChangeMode(int mode);
+
+extern "C" __declspec(dllexport) int SkvcatFinSolForRank(uint64_t rank);
+extern "C" __declspec(dllexport) uint64_t SkvcatGetRankFromSolMin(int * sgiven);
+
+extern "C" __declspec(dllexport) uint64_t SkvcatGetRankFromSolNotMin(int* sgiven, int* sback);
+extern "C" __declspec(dllexport) uint64_t SkvcatGetRankFromSolCharMin(char* sgiven);
+extern "C" __declspec(dllexport) uint64_t SkvcatGetRankFromSolCharNotMin(char* sgiven, int* sback);
+
+extern "C" __declspec(dllexport) int SkvOpennBands(int ib1, int ib2);
+extern "C" __declspec(dllexport) int SkvGetNext();
+
+extern "C" __declspec(dllexport) int skvcatIsVali81(char* z);
 
 //==========  call to get rank of a given solution grid
 int  SkvcatSetModeGetVCDESK(int mode, VCDESC** pe) {
@@ -711,16 +637,24 @@ int SkvcatFinSolForRank(uint64_t rank) {
 	vcat.GoSolForRank();
 	return 0;
 }
+
 uint64_t SkvcatGetRankFromSolMin(int * sgiven) {
-	if (vcat.outmode < 0) return -1;// undefined process
+	vcdesc_e.rank = 0;// set return to fail
+	if (vcat.outmode < 0) return 0;// undefined process
 	memcpy(vcat.s_grid0, sgiven, sizeof vcat.s_grid0);
-	return vcat.FindRankForSolMin();
+	if (vcat.FindRankForSolMin() < 0) {
+		//cout << " bug FindRankForSolMin" << endl;
+		return 0;
+	}
+	vcat.GoSolForSearchRank();
+	return vcdesc_e.rank;
 }
 uint64_t SkvcatGetRankFromSolNotMin(int* sgiven, int* sback) {
 	if (vcat.outmode < 0) return -1;// undefined process
 	SkbsGetMin(sgiven, sback);
 	return SkvcatGetRankFromSolMin(sback);
 }
+
 uint64_t SkvcatGetRankFromSolCharMin(char* sgiven) {
 	int g[81];
 	for (int i = 0; i < 81; i++)g[i] = sgiven[i] - '1';
@@ -730,6 +664,7 @@ uint64_t SkvcatGetRankFromSolCharNotMin(char* sgiven, int* sback) {
 	SkbsGetMinChar(sgiven, sback);
 	return SkvcatGetRankFromSolMin(sback);
 }
+
 int SkvGetNext() {
 	if (vcat.stc_end) return -1;
 	vcat.outmode = 0; // be sure to have the right mode
@@ -740,4 +675,35 @@ int SkvOpennBands(int ib1, int ib2) {
 	vcat.outmode = 0; // be sure to have the right mode
 	vcat.OpenBands(ib1, ib2);
 	return vcat.stc_end;
+}
+
+
+//=====================  check valid sol
+int cellsInGroup[27][9] =
+{
+	{ 0, 1, 2, 3, 4, 5, 6, 7, 8},{ 9,10,11,12,13,14,15,16,17},{18,19,20,21,22,23,24,25,26},
+	{27,28,29,30,31,32,33,34,35},{36,37,38,39,40,41,42,43,44},{45,46,47,48,49,50,51,52,53},
+	{54,55,56,57,58,59,60,61,62},{63,64,65,66,67,68,69,70,71},{72,73,74,75,76,77,78,79,80},
+	{ 0, 9,18,27,36,45,54,63,72},{ 1,10,19,28,37,46,55,64,73},{ 2,11,20,29,38,47,56,65,74},
+	{ 3,12,21,30,39,48,57,66,75},{ 4,13,22,31,40,49,58,67,76},{ 5,14,23,32,41,50,59,68,77},
+	{ 6,15,24,33,42,51,60,69,78},{ 7,16,25,34,43,52,61,70,79},{ 8,17,26,35,44,53,62,71,80},
+	{ 0, 1, 2, 9,10,11,18,19,20},{ 3, 4, 5,12,13,14,21,22,23},{ 6, 7, 8,15,16,17,24,25,26},
+	{27,28,29,36,37,38,45,46,47},{30,31,32,39,40,41,48,49,50},{33,34,35,42,43,44,51,52,53},
+	{54,55,56,63,64,65,72,73,74},{57,58,59,66,67,68,75,76,77},{60,61,62,69,70,71,78,79,80}
+};
+
+int skvcatIsVali81(char* z) {
+	int g[81];
+	for (int i = 0; i < 81; i++) {
+		char c = z[i];
+		if (c < '1' || c>'9') return 0;
+		g[i] = c-'1';
+	}
+	for (int i1 = 0; i1 < 27; i1++) {// r,c,b
+		register int r = 0,*tc= cellsInGroup[i1];
+		for (int i2 = 0; i2 < 9; i2++) // cells
+			r |= 1 << g[tc[i2]];
+		if (r != 0777) return 0;
+	}
+	return 1;
 }

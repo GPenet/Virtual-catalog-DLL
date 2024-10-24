@@ -67,14 +67,14 @@ struct VCAT {// encapsulating global data
 	int s_row4[9], s_grid0[81];
 	uint32_t pcptx;
 	void BuildVr4() {
-		s_vr4 = grid0[27]+1;
+		s_vr4 = s_grid0[27]+1;
 		for (int i = 28; i < 36; i++) {
-			s_vr4=10*s_vr4+ grid0[i]+1;
+			s_vr4=10*s_vr4+ s_grid0[i]+1;
 		}
 	}
 
 	//_______________________ outcat control
-	int outmode; // 0 strore
+	int outmode, mode2below; // 0 strore 1 rank=>sol 2 sol=>rank
 	uint64_t stc_kst, stc_kend,// ranks for the chunk
 		stc_rkr4_1, stc_rkr4_2,// for current ir4 in sequential mode
 		stc_k1,stc_k2;// ranks for the current load
