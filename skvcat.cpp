@@ -380,15 +380,6 @@ void VCAT::Outcat() {
 	pcptx++;// row4 count of valid fills
 	//register uint64_t R = s_r4start + pcptx;//old
 	register uint64_t R = stc_rkr4_1 + pcptx;// current rank 1_..38
-	/*
-	if (outmode == 2) {
-		for (int i = 0; i < 27; i++) cout << grid0[54 + i] + 1;
-		cout << "entry outcat go_back=" << go_back
-			<< "pcptx " << pcptx << " r=" << R
-			<< endl;
-	}
-	*/
-
 
 	switch (outmode) {
 	case 2: {// search b3 ok with given
@@ -404,9 +395,10 @@ void VCAT::Outcat() {
 	}// end case 2
 	case 1: {// search rank=stc_k1= stc_k2
 		if (R > s_rank) { go_back = 1; return; }// not expected
+		if (R < s_rank) { return; }// not yet ok
 		memcpy(s_grid0, grid0, sizeof grid0);
 		//for (int i = 0; i < 81; i++)cout << grid0[i] + 1;
-		//cout << " sol for rank " << s_rank << endl;
+		//cout << " sol for rank " << R << endl;
 		DO81ItoC(grid0, vcdesc_e.g.b1);
 		go_back = 1; return;
 	}// end case 1
@@ -468,7 +460,7 @@ void VCAT::GoSolForRank() {
 	//p_cpt2g[5] = s_r4start;
 	InitRow4FromI10375(tr4u[s_r4_index]);
 	//for (int i = 0; i < 36; i++) cout << grid0[i] + 1;
-	//cout << endl;
+	//  cout << endl;
 	GoRow5();
 	
 }
@@ -617,6 +609,7 @@ extern "C" __declspec(dllexport) int SkvGetNext();
 
 extern "C" __declspec(dllexport) int skvcatIsVali81(char* z);
 
+
 //==========  call to get rank of a given solution grid
 int  SkvcatSetModeGetVCDESK(int mode, VCDESC** pe) {
 	if (mode < 0 || mode>2)return -1;
@@ -641,6 +634,7 @@ int SkvcatFinSolForRank(uint64_t rank) {
 uint64_t SkvcatGetRankFromSolMin(int * sgiven) {
 	vcdesc_e.rank = 0;// set return to fail
 	if (vcat.outmode < 0) return 0;// undefined process
+	vcat.outmode = 2; // be sure to have the right mode
 	memcpy(vcat.s_grid0, sgiven, sizeof vcat.s_grid0);
 	if (vcat.FindRankForSolMin() < 0) {
 		//cout << " bug FindRankForSolMin" << endl;
@@ -676,6 +670,7 @@ int SkvOpennBands(int ib1, int ib2) {
 	vcat.OpenBands(ib1, ib2);
 	return vcat.stc_end;
 }
+
 
 
 //=====================  check valid sol
