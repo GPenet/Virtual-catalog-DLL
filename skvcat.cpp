@@ -277,10 +277,12 @@ void VCAT::GoNewBand2() {
 		p_tpgc->bs_id[1] = pband2.i416;
 	}
 	*/
+
 	{
 		SkbGetMappingInt(&grid0[27], &pband2);
 		register int id = pband2.i416;
 		if (id < it16) return;// lower band1 
+		it16_2 = pband2.i416;
 		p_tpgc->bs_id[1] = id;
 	}
 
@@ -525,7 +527,7 @@ void VCAT::LoadR4() {// entry new r4
 	go_back = 0;
 	//cout << " go load stc_4cur "<< stc_4cur << endl;
 	GoRow5();
-	//cout << "back nload= " << stc_end << endl;
+	//cout << "back nload= "<< stc_stn << " stc_end?? " << stc_end << endl;
 
 
 	stc_ncur = 0;
@@ -594,6 +596,7 @@ void VCAT::GoSolForSearchRank() {
 }
 
 
+
 extern "C" __declspec(dllexport) int  SkvcatSetModeGetVCDESK(int mode, VCDESC** pe);
 extern "C" __declspec(dllexport) int  SkvcatSetChangeMode(int mode);
 
@@ -608,6 +611,7 @@ extern "C" __declspec(dllexport) int SkvOpennBands(int ib1, int ib2);
 extern "C" __declspec(dllexport) int SkvGetNext();
 
 extern "C" __declspec(dllexport) int skvcatIsVali81(char* z);
+
 
 
 //==========  call to get rank of a given solution grid
