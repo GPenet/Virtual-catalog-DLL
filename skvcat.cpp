@@ -470,7 +470,7 @@ void VCAT::GoSolForRank() {
 int VCAT::GetNext() {
 	//cout << " getnext ncur stn " << stc_ncur << " " << stc_stn << endl;
 	if (stc_ncur < stc_stn) {// take out of the table
-		vcdesc_e.rank = stc_kst + stc_ncur;
+		vcdesc_e.rank = stc_kst + stc_ncur+1;
 		memcpy(vcdesc_e.g.rx, &tfillr4[stc_ncur++], 45);
 		return 0;
 	}
